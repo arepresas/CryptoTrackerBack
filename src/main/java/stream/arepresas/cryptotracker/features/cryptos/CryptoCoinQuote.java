@@ -13,6 +13,8 @@ import java.util.Date;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = "coinPrice")
+@EqualsAndHashCode(exclude = "coinPrice")
 @Table(name = "crypto_coin_quote")
 public class CryptoCoinQuote implements Serializable {
   @Id

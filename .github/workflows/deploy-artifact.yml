@@ -7,6 +7,9 @@ jobs:
   deploy-artifact:
     name: Deploy-artifact
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
     steps:
       - uses: actions/checkout@v3
         with:
@@ -14,10 +17,10 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3.5.1
         with:
-          java-version: 18
+          java-version: 25
           distribution: 'temurin'
           cache: 'maven'
       - name: Publish artifact on GitHub Packages
         run: mvn -B -e -X clean deploy -DskipTests
         env:
-          GITHUB_TOKEN: ${{ secrets.USER_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -5,6 +5,6 @@ logging:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/cryptotracker-db
+    url: jdbc:postgresql://localhost:6632/cryptotracker-db
     username: myuser
     password: mysecretpassword

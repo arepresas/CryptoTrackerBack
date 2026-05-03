@@ -4,11 +4,11 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import stream.arepresas.cryptotracker.external.coinmarket.dto.CoinMarketApiResponse;
 import stream.arepresas.cryptotracker.external.coinmarket.dto.CoinMarketInfoApiResponse;
@@ -16,6 +16,7 @@ import stream.arepresas.cryptotracker.external.coinmarket.dto.CoinMarketLastList
 import stream.arepresas.cryptotracker.external.coinmarket.dto.CoinMarketLastQuoteApiResponse;
 import stream.arepresas.cryptotracker.features.cryptos.Currency;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,11 +29,12 @@ import static stream.arepresas.cryptotracker.utils.ApiUtils.logQuery;
 @Slf4j
 public class CoinMarketClient {
 
+  private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(10);
   public static final String START = "start";
   public static final String LIMIT = "limit";
   public static final String CONVERT = "convert";
   public static final String ID = "id";
-  private final RestTemplate coinMarketRestTemplate;
+  private final WebClient coinMarketWebClient;
 
   @Value("${coinMarket.api.key}")
   private String apiKey;
@@ -46,20 +48,23 @@ public class CoinMarketClient {
     String url = mainUrl.concat("/v2/cryptocurrency/info");
 
     String urlTemplate =
-        UriComponentsBuilder.fromHttpUrl(url).queryParam(ID, "{id}").encode().toUriString();
+        UriComponentsBuilder.fromUriString(url).queryParam(ID, "{id}").encode().toUriString();
 
     Map<String, ?> params =
         Map.of(ID, cryptoIds.stream().map(String::valueOf).collect(Collectors.joining(",")));
 
     logQuery(urlTemplate, params);
 
-    return getResponse(
-        coinMarketRestTemplate.exchange(
-            urlTemplate,
-            HttpMethod.GET,
-            createHttpEntity(),
-            CoinMarketInfoApiResponse.class,
-            params));
+    ResponseEntity<CoinMarketInfoApiResponse> coinMarketApiResponse = coinMarketWebClient
+            .method(HttpMethod.GET)
+            .uri(urlTemplate, params)
+            .headers(httpHeaders -> httpHeaders.addAll(createHttpHeaders()))
+            .retrieve()
+            .toEntity(CoinMarketInfoApiResponse.class)
+            .timeout(REQUEST_TIMEOUT)
+            .block();
+
+    return getResponse(coinMarketApiResponse);
   }
 
   public CoinMarketApiResponse getCryptoLastPrices(
@@ -69,7 +74,7 @@ public class CoinMarketClient {
     String url = mainUrl.concat("/v1/cryptocurrency/listings/latest");
 
     String urlTemplate =
-        UriComponentsBuilder.fromHttpUrl(url)
+        UriComponentsBuilder.fromUriString(url)
             .queryParam(START, "{start}")
             .queryParam(LIMIT, "{limit}")
             .queryParam(CONVERT, "{convert}")
@@ -80,23 +85,26 @@ public class CoinMarketClient {
 
     logQuery(urlTemplate, params);
 
-    return getResponse(
-        coinMarketRestTemplate.exchange(
-            urlTemplate,
-            HttpMethod.GET,
-            createHttpEntity(),
-            CoinMarketLastListingApiResponse.class,
-            params));
+    ResponseEntity<CoinMarketLastListingApiResponse> coinMarketApiResponse = coinMarketWebClient
+            .method(HttpMethod.GET)
+            .uri(urlTemplate, params)
+            .headers(httpHeaders -> httpHeaders.addAll(createHttpHeaders()))
+            .retrieve()
+            .toEntity(CoinMarketLastListingApiResponse.class)
+            .timeout(REQUEST_TIMEOUT)
+            .block();
+
+    return getResponse(coinMarketApiResponse);
   }
 
   public CoinMarketApiResponse getCryptoPrices(
       @NonNull List<Long> cryptoIds, @NonNull Currency currency) {
-    log.info("CoinMarketClient - getCryptoLastPrices");
+    log.info("CoinMarketClient - getCryptoPrices");
 
     String url = mainUrl.concat("/v2/cryptocurrency/quotes/latest");
 
     String urlTemplate =
-        UriComponentsBuilder.fromHttpUrl(url)
+        UriComponentsBuilder.fromUriString(url)
             .queryParam(ID, "{id}")
             .queryParam(CONVERT, "{convert}")
             .encode()
@@ -111,23 +119,25 @@ public class CoinMarketClient {
 
     logQuery(urlTemplate, params);
 
-    return getResponse(
-        coinMarketRestTemplate.exchange(
-            urlTemplate,
-            HttpMethod.GET,
-            createHttpEntity(),
-            CoinMarketLastQuoteApiResponse.class,
-            params));
+    ResponseEntity<CoinMarketLastQuoteApiResponse> coinMarketApiResponse = coinMarketWebClient
+            .method(HttpMethod.GET)
+            .uri(urlTemplate, params)
+            .headers(httpHeaders -> httpHeaders.addAll(createHttpHeaders()))
+            .retrieve()
+            .toEntity(CoinMarketLastQuoteApiResponse.class)
+            .timeout(REQUEST_TIMEOUT)
+            .block();
+
+    return getResponse(coinMarketApiResponse);
   }
 
   //  TODO
   // Price Conversion v2
 
-  private HttpEntity<?> createHttpEntity() {
-    HttpHeaders httpHeaders = new HttpHeaders();
-    httpHeaders.add(HttpHeaders.ACCEPT, "application/json");
-    httpHeaders.add("X-CMC_PRO_API_KEY", apiKey);
-
-    return new HttpEntity<>(httpHeaders);
+  private HttpHeaders createHttpHeaders() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.add(HttpHeaders.ACCEPT, "application/json");
+    headers.add("X-CMC_PRO_API_KEY", apiKey);
+    return headers;
   }
 }
