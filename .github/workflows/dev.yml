@@ -5,51 +5,54 @@ on:
     branches:
       - develop
 
+permissions:
+  actions: write
+
 jobs:
   buildAndSonar:
     name: Build-app
     runs-on: ubuntu-latest
     steps:
-      - name: build_sonar_ext
-        uses: aurelien-baudet/workflow-dispatch@v2.1.1
-        with:
-          workflow: Build-app-workflow
-          token: ${{ secrets.USER_GITHUB_TOKEN }}
-          display-workflow-run-url: true
-          display-workflow-run-url-timeout: 10m
-          display-workflow-run-url-interval: 15s
-          wait-for-completion-timeout: 10m
-          wait-for-completion-interval: 15s
+        - name: build_sonar_ext
+          uses: aurelien-baudet/workflow-dispatch@v2.1.1
+          with:
+            workflow: Build-app-workflow
+            token: ${{ secrets.GITHUB_TOKEN }}
+            display-workflow-run-url: true
+            display-workflow-run-url-timeout: 10m
+            display-workflow-run-url-interval: 15s
+            wait-for-completion-timeout: 10m
+            wait-for-completion-interval: 15s
 
   deploy-artifact:
     name: Deploy-artifact
     runs-on: ubuntu-latest
     needs: [ buildAndSonar ]
     steps:
-      - name: deploy_artifact_ext
-        uses: aurelien-baudet/workflow-dispatch@v2.1.1
-        with:
-          workflow: Deploy-artifact-workflow
-          token: ${{ secrets.USER_GITHUB_TOKEN }}
-          display-workflow-run-url: true
-          display-workflow-run-url-timeout: 10m
-          display-workflow-run-url-interval: 15s
-          wait-for-completion-timeout: 10m
-          wait-for-completion-interval: 15s
+        - name: deploy_artifact_ext
+          uses: aurelien-baudet/workflow-dispatch@v2.1.1
+          with:
+            workflow: Deploy-artifact-workflow
+            token: ${{ secrets.GITHUB_TOKEN }}
+            display-workflow-run-url: true
+            display-workflow-run-url-timeout: 10m
+            display-workflow-run-url-interval: 15s
+            wait-for-completion-timeout: 10m
+            wait-for-completion-interval: 15s
 
   build-docker-latest:
     name: Build-docker-latest
     runs-on: ubuntu-latest
     needs: [ buildAndSonar ]
     steps:
-      - name: build-docker-latest_ext
-        uses: aurelien-baudet/workflow-dispatch@v2.1.1
-        with:
-          workflow: Build-docker-workflow
-          token: ${{ secrets.USER_GITHUB_TOKEN }}
-          display-workflow-run-url: true
-          display-workflow-run-url-timeout: 10m
-          display-workflow-run-url-interval: 15s
-          wait-for-completion-timeout: 10m
-          wait-for-completion-interval: 15s
-          inputs: '{ "version": "false" }'
+        - name: build-docker-latest_ext
+          uses: aurelien-baudet/workflow-dispatch@v2.1.1
+          with:
+            workflow: Build-docker-workflow
+            token: ${{ secrets.GITHUB_TOKEN }}
+            display-workflow-run-url: true
+            display-workflow-run-url-timeout: 10m
+            display-workflow-run-url-interval: 15s
+            wait-for-completion-timeout: 10m
+            wait-for-completion-interval: 15s
+            inputs: '{ "version": "false" }'

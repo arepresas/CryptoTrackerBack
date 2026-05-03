@@ -1,9 +1,12 @@
 name: Release workflow
 
 on:
-  workflow_dispatch:
+  push:
     tags:
-      - "crypto-tracker-[0-9]+.[0-9]+.[0-9]+"
+      - 'crypto-tracker-*.*.*'
+
+permissions:
+  actions: write
 
 jobs:
   buildAndSonar:
@@ -14,7 +17,7 @@ jobs:
         uses: aurelien-baudet/workflow-dispatch@v2.1.1
         with:
           workflow: Build-app-workflow
-          token: ${{ secrets.USER_GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           display-workflow-run-url: true
           display-workflow-run-url-timeout: 10m
           display-workflow-run-url-interval: 15s
@@ -30,7 +33,7 @@ jobs:
         uses: aurelien-baudet/workflow-dispatch@v2.1.1
         with:
           workflow: Build-docker-workflow
-          token: ${{ secrets.USER_GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           display-workflow-run-url: true
           display-workflow-run-url-timeout: 10m
           display-workflow-run-url-interval: 15s

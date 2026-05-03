@@ -16,7 +16,7 @@ spring:
   cloud:
     vault:
       token: ${VAULT_TOKEN}
-      uri: http://127.0.0.1:8200
+      uri: ${VAULT_URI}
       kv:
         enabled: true
         default-context: 'crypto-tracker'

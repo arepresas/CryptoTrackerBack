@@ -16,6 +16,7 @@ import stream.arepresas.cryptotracker.external.coinmarket.dto.CoinMarketLastList
 import stream.arepresas.cryptotracker.external.coinmarket.dto.CoinMarketLastQuoteApiResponse;
 import stream.arepresas.cryptotracker.features.cryptos.Currency;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,6 +29,7 @@ import static stream.arepresas.cryptotracker.utils.ApiUtils.logQuery;
 @Slf4j
 public class CoinMarketClient {
 
+  private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(10);
   public static final String START = "start";
   public static final String LIMIT = "limit";
   public static final String CONVERT = "convert";
@@ -59,6 +61,7 @@ public class CoinMarketClient {
             .headers(httpHeaders -> httpHeaders.addAll(createHttpHeaders()))
             .retrieve()
             .toEntity(CoinMarketInfoApiResponse.class)
+            .timeout(REQUEST_TIMEOUT)
             .block();
 
     return getResponse(coinMarketApiResponse);
@@ -88,6 +91,7 @@ public class CoinMarketClient {
             .headers(httpHeaders -> httpHeaders.addAll(createHttpHeaders()))
             .retrieve()
             .toEntity(CoinMarketLastListingApiResponse.class)
+            .timeout(REQUEST_TIMEOUT)
             .block();
 
     return getResponse(coinMarketApiResponse);
@@ -95,7 +99,7 @@ public class CoinMarketClient {
 
   public CoinMarketApiResponse getCryptoPrices(
       @NonNull List<Long> cryptoIds, @NonNull Currency currency) {
-    log.info("CoinMarketClient - getCryptoLastPrices");
+    log.info("CoinMarketClient - getCryptoPrices");
 
     String url = mainUrl.concat("/v2/cryptocurrency/quotes/latest");
 
@@ -121,6 +125,7 @@ public class CoinMarketClient {
             .headers(httpHeaders -> httpHeaders.addAll(createHttpHeaders()))
             .retrieve()
             .toEntity(CoinMarketLastQuoteApiResponse.class)
+            .timeout(REQUEST_TIMEOUT)
             .block();
 
     return getResponse(coinMarketApiResponse);

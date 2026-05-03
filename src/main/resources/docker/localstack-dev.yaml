@@ -32,7 +32,7 @@ services:
 
   vault:
     container_name: cryptotracker-vault
-    image: hashicorp/vault:latest
+    image: hashicorp/vault:2.0
     entrypoint:
       - vault
       - server
@@ -52,7 +52,7 @@ services:
 
   vault-init:
     container_name: cryptotracker-vault-init
-    image: curlimages/curl:8.8.0
+    image: alpine:3.20.3
     depends_on:
       vault:
         condition: service_healthy
@@ -63,14 +63,21 @@ services:
     entrypoint: ["/bin/sh", "-ec"]
     command:
       - |
+        apk add --no-cache curl jq >/dev/null 2>&1
         VAULT_TOKEN="$${VAULT_TOKEN:-dev-token}"
         CRYPTO_API_URL="$${CRYPTO_API_URL:-https://pro-api.coinmarketcap.com}"
         until curl -sf "$$VAULT_ADDR/v1/sys/health" >/dev/null; do sleep 1; done
         if [ -z "$$CRYPTO_API_KEY" ]; then echo "CRYPTO_API_KEY is empty"; exit 1; fi
+        
+        JSON_PAYLOAD=$(jq -n \
+          --arg url "$$CRYPTO_API_URL" \
+          --arg key "$$CRYPTO_API_KEY" \
+          '{data: {"crypto-api.url": $url, "crypto-api.key": $key}}')
+
         curl -sf -X POST "$$VAULT_ADDR/v1/secret/data/crypto-tracker" \
           -H "X-Vault-Token: $$VAULT_TOKEN" \
           -H "Content-Type: application/json" \
-          --data "{\"data\":{\"crypto-api.url\":\"$$CRYPTO_API_URL\",\"crypto-api.key\":\"$$CRYPTO_API_KEY\"}}"
+          --data "$$JSON_PAYLOAD"
         echo "Vault secrets loaded"
     restart: "no"
 

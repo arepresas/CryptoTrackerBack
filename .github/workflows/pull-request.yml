@@ -3,6 +3,9 @@ name: Branch PullRequest workflow
 on:
   pull_request:
     types: [ opened, synchronize, reopened ]
+
+permissions:
+  actions: write
 jobs:
   buildAndSonar:
     name: Build-app
@@ -12,7 +15,7 @@ jobs:
         uses: aurelien-baudet/workflow-dispatch@v2.1.1
         with:
           workflow: Build-app-workflow
-          token: ${{ secrets.USER_GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           ref: ${{ github.event.pull_request.head.ref }}
           display-workflow-run-url: true
           display-workflow-run-url-timeout: 10m
