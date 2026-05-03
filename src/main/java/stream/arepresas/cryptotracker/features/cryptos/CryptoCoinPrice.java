@@ -13,8 +13,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = "coinPriceQuotes")
-@EqualsAndHashCode(exclude = "coinPriceQuotes")
+@ToString(exclude = {"coinPriceQuotes", "coinInfo"})
+@EqualsAndHashCode(exclude = {"coinPriceQuotes", "coinInfo"})
 @Table(name = "crypto_coin_price")
 public class CryptoCoinPrice implements Serializable {
   @Id

@@ -131,4 +131,20 @@
                                  referencedTableName="crypto_coin_price"/>
     </changeSet>
 
+    <changeSet id="202605031638-1"
+               author="opencode">
+        <modifyDataType tableName="crypto_coin"
+                        columnName="description"
+                        newDataType="TEXT"/>
+        <modifyDataType tableName="crypto_coin"
+                        columnName="tags"
+                        newDataType="TEXT"/>
+        <modifyDataType tableName="crypto_coin"
+                        columnName="tag_names"
+                        newDataType="TEXT"/>
+        <modifyDataType tableName="crypto_coin"
+                        columnName="tag_groups"
+                        newDataType="TEXT"/>
+    </changeSet>
+
 </databaseChangeLog>

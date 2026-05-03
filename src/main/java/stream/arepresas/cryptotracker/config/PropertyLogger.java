@@ -11,12 +11,27 @@ import org.springframework.core.env.MutablePropertySources;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 import java.util.stream.StreamSupport;
 
 @Slf4j
 @Component
-@Profile("dev")
+@Profile("local")
 public class PropertyLogger {
+
+  private static final List<String> SENSITIVE_PROPERTY_TOKENS =
+      List.of(
+          "password",
+          "secret",
+          "token",
+          "credential",
+          "api.key",
+          "api-key",
+          "access-key",
+          "private-key",
+          "secret-key",
+          "authorization");
 
   @EventListener
   public void handleContextRefresh(ContextRefreshedEvent event) {
@@ -29,9 +44,29 @@ public class PropertyLogger {
         .map(ps -> ((EnumerablePropertySource) ps).getPropertyNames())
         .flatMap(Arrays::stream)
         .distinct()
-        .filter(prop -> !(prop.contains("credentials") || prop.contains("password")))
         .sorted()
-        .forEach(prop -> log.info("{}: {}", prop, env.getProperty(prop)));
+        .forEach(prop -> log.info("{}: {}", prop, sanitizeValue(prop, env.getProperty(prop))));
     log.info("===========================================");
+  }
+
+  private static String sanitizeValue(String propertyName, String propertyValue) {
+    if (propertyValue == null) {
+      return null;
+    }
+
+    if (!isSensitiveProperty(propertyName)) {
+      return propertyValue;
+    }
+
+    if (propertyValue.length() <= 4) {
+      return "****";
+    }
+
+    return propertyValue.substring(0, 2) + "****" + propertyValue.substring(propertyValue.length() - 2);
+  }
+
+  private static boolean isSensitiveProperty(String propertyName) {
+    String normalizedPropertyName = propertyName.toLowerCase(Locale.ROOT);
+    return SENSITIVE_PROPERTY_TOKENS.stream().anyMatch(normalizedPropertyName::contains);
   }
 }
