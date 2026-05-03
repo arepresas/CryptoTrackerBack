@@ -20,7 +20,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3.5.1
         with:
-          java-version: 18
+          java-version: 25
           distribution: 'temurin'
           cache: 'maven'
       - name: Cache Maven packages

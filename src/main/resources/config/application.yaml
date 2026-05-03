@@ -10,6 +10,16 @@ logging:
       hibernate.SQL: INFO
 
 spring:
+  application.name: "crypto-tracker"
+  config:
+    import: vault://
+  cloud:
+    vault:
+      token: ${VAULT_TOKEN}
+      uri: ${VAULT_URI}
+      kv:
+        enabled: true
+        default-context: 'crypto-tracker'
   datasource:
     hikari:
       maximumPoolSize: 10
@@ -30,7 +40,6 @@ spring:
       ddl-auto: none
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
-        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
       show-sql: true
   liquibase:
     change-log: classpath:db/changelog-master.yml
@@ -41,8 +50,8 @@ springdoc:
 
 coinMarket:
   api:
-    url: https://pro-api.coinmarketcap.com
-    # key: IN_SECRETS
+    url: ${crypto-api.url}
+    key: ${crypto-api.key}
   saved-cryptos:
     start: 1
     end: 200

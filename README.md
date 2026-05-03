@@ -1,105 +1,181 @@
 # CryptoTracker API
 
-## Read Me (short story)
+Backend API for fetching, storing, and exposing cryptocurrency market data.
+The project uses Spring Boot, PostgreSQL, Liquibase, and Vault for secrets management.
 
-This repository is **the api source code** for in store price checking
+## Quick Overview
 
-It's writen as a website, involving
-- an **API** : Java, Spring Boot REST API
-- a **database** : Postgres
+- Language: Java 25
+- Framework: Spring Boot 4
+- Database: PostgreSQL
+- Migrations: Liquibase
+- Secrets: HashiCorp Vault (dev mode for local setup)
+- API docs: OpenAPI / Swagger UI
 
-and, yeah, it's [MonolithFirst](https://www.martinfowler.com/bliki/MonolithFirst.html)
+## Architecture
 
-## Running the application locally
+The project follows a modular monolith approach with a package-by-feature structure.
 
-**Requirements**:
-- docker (for install postgres)
-- postgres 18
-- java 18
+- `features/cryptos`: business logic and endpoints for coins, prices, and quotes
+- `external/coinmarket`: HTTP client for CoinMarketCap
+- `config`: configuration classes (CORS, scheduler, web client, property logging)
+- `src/main/resources/config`: app profiles (`application.yaml`, `application-local.yaml`, etc.)
+- `src/main/resources/db`: Liquibase changelogs
 
-### Install docker and docker-compose
+## Requirements
 
-- Download it [here](https://download.docker.com/mac/stable/Docker.dmg)
-- Follow instructions [here](https://docs.docker.com/v17.12/docker-for-mac/install/#install-and-run-docker-for-mac)
+- Docker + Docker Compose
+- Java 25
+- Maven (or use the included wrapper `./mvnw`)
 
-**Note** : Using Windows ? Rather follow instructions [here](https://docs.docker.com/v17.12/docker-for-windows/install/)
+## Local Setup
 
-**Note 2** : Linux ? [here](https://docs.docker.com/v17.12/install/linux/docker-ce/ubuntu/)
+### 1) Create local environment file
 
-### Install and run postgres
+Create a `.env` file at repository root (do not commit it):
 
-#### - Launch your docker-compose
-
-- Launch : **docker-compose -f src/main/resources/docker/localstack-dev.yaml up -d**
-
-#### - Launch pgadmin
-
-- Launch your favourite internet browser and go to **http://localhost:8080**
-
-#### - Delete all data
-
-- Launch : **docker stop crypto-tracker-db pgadmin && docker rm crypto-tracker-db pgadmin && docker volume rm crypto-tracker-db_data crypto-tracker-db_dump crypto-tracker-db_pgadmin**
-
-- You can do **docker stop crypto-tracker-db pgadmin && docker system prune -a** to delete all data and docker images
-
-### Run project
-
-For local development with local DB use spring profiles : local, debug
-And sets VM options : **-DcoinMarket.api.key="YOUR_COINMARKET_API_KEY"**
-
-# Contribute
-
-Use Intellij IDE.
-
-Is it recommended to install Lombok Plugin.
-
-We will use Architecture Decision Records, as [described by Michael Nygard](http://thinkrelevance.com/blog/2011/11/15/documenting-architecture-decisions).
-
-## Files and Directories
-
-The project (a.k.a. project directory) has a particular directory structure. A representative project is shown below:
-
-"[Package by feature](https://lkrnac.net/blog/2018/02/package-by-layer-obsolete/)" ("Folder by feature" in non Java world)
-
-This approach on the other hand groups together files belonging to certain feature within the system
-
-### Database migration / Liquibase
-
-You must use database migration script (see *src/main/resources/db/*)
-For convenience, you can use the maven command to generate new liquibase migration script :
-
+```bash
+cat > .env <<'EOF'
+VAULT_TOKEN=dev-token
+CRYPTO_API_URL=https://pro-api.coinmarketcap.com
+CRYPTO_API_KEY=YOUR_COINMARKET_API_KEY
+EOF
 ```
-mvn liquibase:diff
+
+Notes:
+
+- `CRYPTO_API_KEY` is required for `vault-init` to load secrets.
+- Secrets are written into Vault at `secret/data/crypto-tracker`.
+
+### 2) Start local infrastructure
+
+```bash
+docker compose -f src/main/resources/docker/localstack-dev.yaml up -d
 ```
-### Swagger
 
-You can access to swagger-ui with the following uri : http://localhost:8700/swagger-ui/index.html
+Services started:
 
-### Actuator
+- PostgreSQL: `localhost:6632` (db: `cryptotracker-db`, user: `myuser`, pass: `mysecretpassword`)
+- pgAdmin: `http://localhost:6680` (email: `mail@mail.com`, pass: `mysecretpassword`)
+- Vault dev: `http://localhost:8200` (default token: `dev-token`)
 
-**TODO**
+### 3) Run the application
 
-To monitor and manage your application
+In your terminal:
 
-### Reference Documentation
-For further reference, please consider the following sections:
+```bash
+export VAULT_TOKEN=dev-token
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local,debug
+```
 
-* [Official Apache Maven documentation](https://maven.apache.org/guides/index.html)
-* [Spring Boot Maven Plugin Reference Guide](https://docs.spring.io/spring-boot/docs/2.2.2.RELEASE/maven-plugin/)
-* [Spring Security](https://docs.spring.io/spring-boot/docs/2.2.2.RELEASE/reference/htmlsingle/#boot-features-security)
-* [Spring Boot Actuator](https://docs.spring.io/spring-boot/docs/2.2.2.RELEASE/reference/htmlsingle/#production-ready)
-* [Spring Configuration Processor](https://docs.spring.io/spring-boot/docs/2.2.2.RELEASE/reference/htmlsingle/#configuration-metadata-annotation-processor)
-* [Spring HATEOAS](https://docs.spring.io/spring-boot/docs/2.2.2.RELEASE/reference/htmlsingle/#boot-features-spring-hateoas)
-* [Spring Data JPA](https://docs.spring.io/spring-boot/docs/2.2.2.RELEASE/reference/htmlsingle/#boot-features-jpa-and-spring-data)
-* [Spring Boot Admin (Server)](https://codecentric.github.io/spring-boot-admin/current/#getting-started)
-* [Spring Boot DevTools](https://docs.spring.io/spring-boot/docs/2.2.2.RELEASE/reference/htmlsingle/#using-boot-devtools)
+The API is available at `http://localhost:8700`.
 
-### Guides
-The following guides illustrate how to use some features concretely:
+## API Documentation
 
-* [Securing a Web Application](https://spring.io/guides/gs/securing-web/)
-* [Spring Boot and OAuth2](https://spring.io/guides/tutorials/spring-boot-oauth2/)
-* [Authenticating a User with LDAP](https://spring.io/guides/gs/authenticating-ldap/)
-* [Building a RESTful Web Service with Spring Boot Actuator](https://spring.io/guides/gs/actuator-service/)
-* [Building a Hypermedia-Driven RESTful Web Service](https://spring.io/guides/gs/rest-hateoas/)
-* [Accessing Data with JPA](https://spring.io/guides/gs/accessing-data-jpa/)
+- Swagger UI: `http://localhost:8700/swagger-ui.html`
+
+## Main Endpoints
+
+Local base URL: `http://localhost:8700`
+
+### Internal persisted data
+
+- `GET /v1/crypto/coins/{cryptoId}`
+- `GET /v1/crypto/coins`
+- `GET /v1/crypto/prices/{cryptoPriceId}`
+- `GET /v1/crypto/prices`
+- `GET /v1/crypto/quotes/{cryptoQuoteId}`
+- `GET /v1/crypto/quotes`
+
+Pagination and sorting (for list endpoints):
+
+- `pageNumber`
+- `resultsPerPage`
+- `sortBy`
+- `sortDirection` (`ASC` or `DESC`)
+
+Filters (depending on resource):
+
+- Coins: `ids`, `symbol`, `name`, `category`, `slug`, `subreddit`, `tags`, etc.
+- Prices: `ids`, `cmcRank`, `cryptoCoinIds`, `cryptoCoinSymbols`, etc.
+- Quotes: `ids`, `currency`, `lastUpdatedBefore`, `lastUpdatedAfter`, `cryptoPriceIds`
+
+### CoinMarketCap proxy endpoints
+
+- `GET /v1/coinMarketCrypto/info/{cryptoIds}`
+- `GET /v1/coinMarketCrypto/lastListing?start=1&limit=200&currency=USD`
+- `GET /v1/coinMarketCrypto/quote/{cryptoIds}/{currency}`
+
+Examples:
+
+```bash
+curl "http://localhost:8700/v1/coinMarketCrypto/info/1,1027"
+curl "http://localhost:8700/v1/coinMarketCrypto/lastListing?start=1&limit=50&currency=USD"
+curl "http://localhost:8700/v1/coinMarketCrypto/quote/1,1027/USD"
+```
+
+Supported `currency` values: `USD`, `BTC`, `ETH`.
+
+### Manual update task
+
+- `GET /v1/cryptoTask/lastPrices`
+
+Triggers the task that synchronizes cryptos/prices/quotes from CoinMarketCap.
+
+## Database and Migrations
+
+- Master changelog: `src/main/resources/db/changelog-master.yml`
+- Initial schema and updates: `src/main/resources/db/init-db.xml`
+
+To evolve the schema, add new Liquibase `changeSet` entries under `db/`.
+
+## Useful Commands
+
+### Run tests
+
+```bash
+./mvnw clean test
+```
+
+### Build artifact
+
+```bash
+./mvnw clean package
+```
+
+### Build Docker image
+
+```bash
+docker build -f docker/Dockerfile -t crypto-tracker:local .
+```
+
+## Stop and Clean Local Environment
+
+Stop containers:
+
+```bash
+docker compose -f src/main/resources/docker/localstack-dev.yaml down
+```
+
+Stop and remove volumes:
+
+```bash
+docker compose -f src/main/resources/docker/localstack-dev.yaml down -v
+```
+
+## CI/CD (GitHub Actions)
+
+Workflows under `.github/workflows/` cover:
+
+- build + test + sonar
+- docker image build/publish
+- develop, pull request, and release flows
+
+## Troubleshooting
+
+- Vault errors on startup:
+  - Ensure Vault is running (`http://localhost:8200`) and `VAULT_TOKEN` is exported.
+- CoinMarketCap key errors:
+  - Check `CRYPTO_API_KEY` in `.env` and recreate `vault-init` by restarting compose.
+- PostgreSQL connection issues:
+  - Ensure `crypto-tracker-db` container is up and port `6632` is free.

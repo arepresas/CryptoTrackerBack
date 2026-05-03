@@ -1,0 +1,17 @@
+version = 1
+
+test_patterns = [
+  "src/test/**"
+]
+
+exclude_patterns = [
+  "target/**"
+]
+
+[[analyzers]]
+name = "java"
+enabled = true
+
+[[analyzers]]
+name = "secrets"
+enabled = true

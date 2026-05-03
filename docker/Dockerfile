@@ -1,11 +1,14 @@
-FROM maven:3.8.6-openjdk-18-slim AS build
-RUN mkdir -p /workspace
+FROM maven:3.9.15-eclipse-temurin-25-noble AS build
 WORKDIR /workspace
-COPY pom.xml /workspace
-COPY src /workspace/src
-RUN mvn -B -f pom.xml clean package -DskipTests
 
-FROM openjdk:18-jdk-slim
-COPY --from=build /workspace/target/*.jar app.jar
+COPY pom.xml ./
+RUN mvn -B -ntp dependency:go-offline
+
+COPY src ./src
+RUN mvn -B -ntp clean package -DskipTests
+
+FROM gcr.io/distroless/java25-debian13:nonroot
+COPY --from=build /workspace/target/*.jar /app/app.jar
+
 EXPOSE 8700
-ENTRYPOINT ["java","-jar","app.jar"]
+CMD ["/app/app.jar"]

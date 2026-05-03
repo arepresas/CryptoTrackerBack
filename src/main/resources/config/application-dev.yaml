@@ -1,7 +1,9 @@
 logging:
   config: classpath:logback-spring-local.xml
   level:
-    org.springframework.web.client.RestTemplate: DEBUG
+    org.springframework.web.reactive.function.client.ExchangeFunctions: DEBUG
+    reactor.netty.http.client.HttpClient: DEBUG
+    io.netty.handler.logging.LoggingHandler: DEBUG
 
 spring:
   datasource:
