@@ -1,15 +1,17 @@
 package stream.arepresas.cryptotracker.features.cryptos;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface CryptoCoinQuoteMapper {
 
-  CryptoCoin toEntity(CryptoCoinQuoteDto dto);
+  @Mapping(target = "coinPrice", ignore = true)
+  CryptoCoinQuote toEntity(CryptoCoinQuoteDto dto);
 
-  List<CryptoCoin> toEntities(List<CryptoCoinQuoteDto> dtos);
+  List<CryptoCoinQuote> toEntities(List<CryptoCoinQuoteDto> dtos);
 
   CryptoCoinQuoteDto toDto(CryptoCoinQuote cryptoCoinQuote);
 

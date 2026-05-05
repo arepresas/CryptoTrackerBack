@@ -127,20 +127,12 @@ public class UpdateCryptosTask implements Runnable {
 
       List<CryptoCoinQuote> cryptoCoinQuotes = new ArrayList<>();
 
-      savedCryptoCoinPrices.stream()
-          .forEach(
-              cryptoCoinPrice -> {
-                CoinMarketCryptoPrice coinMarketCryptoPrice =
-                    lastPricesOldCryptos.stream()
-                        .filter(
-                            price -> price.getId().equals(cryptoCoinPrice.getCoinInfo().getId()))
-                        .findFirst()
-                        .orElse(null);
-                if (coinMarketCryptoPrice != null)
-                  cryptoCoinQuotes.addAll(
-                      cryptoCoinPriceQuotesFromCoinMarketCryptoPriceQuotes(
-                          coinMarketCryptoPrice.getQuote(), cryptoCoinPrice));
-              });
+      savedCryptoCoinPrices.forEach(cryptoCoinPrice ->
+        lastPricesOldCryptos.stream()
+          .filter(price -> price.getId().equals(cryptoCoinPrice.getCoinInfo().getId()))
+          .findFirst().ifPresent(coinMarketCryptoPrice -> cryptoCoinQuotes
+            .addAll(cryptoCoinPriceQuotesFromCoinMarketCryptoPriceQuotes(coinMarketCryptoPrice.getQuote(), cryptoCoinPrice))));
+
       cryptoCoinService.saveCryptoCoinPriceQuotes(cryptoCoinQuotes);
     } catch (Exception exception) {
       log.error(exception.getMessage());
