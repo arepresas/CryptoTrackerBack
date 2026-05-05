@@ -3,6 +3,7 @@ package stream.arepresas.cryptotracker.features.cryptos;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -15,6 +16,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class CryptoCoinPriceCriteria extends PaginationCriteria {
   private List<Long> ids;
   private Long cmcRank;
