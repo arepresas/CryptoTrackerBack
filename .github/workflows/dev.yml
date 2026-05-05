@@ -17,6 +17,10 @@ jobs:
   deploy-artifact:
     name: Deploy-artifact
     needs: [ buildAndSonar ]
+    permissions:
+      actions: write
+      contents: write
+      packages: write
     uses: ./.github/workflows/deploy-artifact.yml
     secrets: inherit
 

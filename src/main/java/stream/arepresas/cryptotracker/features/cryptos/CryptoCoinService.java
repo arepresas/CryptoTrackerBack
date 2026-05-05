@@ -12,7 +12,9 @@ import stream.arepresas.cryptotracker.utils.DataUtils;
 
 import java.util.List;
 
-import static stream.arepresas.cryptotracker.utils.DataUtils.*;
+import static stream.arepresas.cryptotracker.utils.DataUtils.isNullOrEmpty;
+import static stream.arepresas.cryptotracker.utils.DataUtils.listToString;
+import static stream.arepresas.cryptotracker.utils.DataUtils.logCriteria;
 
 @RequiredArgsConstructor
 @Service
@@ -196,7 +198,7 @@ public class CryptoCoinService {
       log.info(
           "Saved {} cryptoCoins with Ids {}",
           savedCryptoCoins.size(),
-          listToString(savedCryptoCoins.stream().map(cryptoCoin -> cryptoCoin.getId()).toList()));
+          listToString(savedCryptoCoins.stream().map(CryptoCoin::getId).toList()));
     }
 
     return savedCryptoCoins;

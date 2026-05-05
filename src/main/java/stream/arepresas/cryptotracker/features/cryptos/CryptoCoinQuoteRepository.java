@@ -5,5 +5,5 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface CryptoCoinQuoteRepository
-    extends JpaRepository<CryptoCoinQuote, Long>, QuerydslPredicateExecutor<CryptoCoinQuote> {}
+public interface CryptoCoinQuoteRepository extends JpaRepository<CryptoCoinQuote, Long>, QuerydslPredicateExecutor<CryptoCoinQuote> {
+}

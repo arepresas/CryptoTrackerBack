@@ -40,9 +40,8 @@ public class CryptoCoin implements Serializable {
 
   @JsonIgnore
   @OneToOne(
-      mappedBy = "coinInfo",
-      cascade = CascadeType.ALL,
-      fetch = FetchType.LAZY,
-      orphanRemoval = true)
+    mappedBy = "coinInfo",
+    cascade = CascadeType.ALL,
+    orphanRemoval = true)
   private CryptoCoinPrice coinPrice;
 }

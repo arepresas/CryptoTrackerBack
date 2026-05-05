@@ -8,8 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface CryptoCoinRepository
-    extends JpaRepository<CryptoCoin, Long>, QuerydslPredicateExecutor<CryptoCoin> {
+public interface CryptoCoinRepository extends JpaRepository<CryptoCoin, Long>, QuerydslPredicateExecutor<CryptoCoin> {
 
   @Query("select c.id from CryptoCoin c")
   List<Long> findCryptoCoinIds();
