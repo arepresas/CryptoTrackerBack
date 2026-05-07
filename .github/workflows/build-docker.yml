@@ -4,29 +4,27 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version'
+        description: 'Build version image'
         required: true
-        default: 'false'
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       version:
-        description: 'Version'
+        description: 'Build version image'
         required: false
-        type: string
-        default: 'false'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
 
 jobs:
   docker-version:
-    name: Publish Docker Image Version
+    name: Publish Docker Image
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - name: Cache Docker layers
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
       - name: Check Out Repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -40,20 +38,25 @@ jobs:
         id: buildx
         uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
       - name: Extract Maven project version
-        run: echo ::set-output name=version::$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+        if: ${{ inputs.version }}
         id: project
+        run: |
+          version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
       - name: Show extracted Maven project version
+        if: ${{ inputs.version }}
         run: echo ${{ steps.project.outputs.version }}
 
-      # Get branch name
-      - name: Set env.BRANCH
-        run: echo "BRANCH=$(echo $GITHUB_REF | cut -d'/' -f 3)" >> $GITHUB_ENV
-      - name: Get branch name
-        run: echo ${BRANCH}
+      - name: Prepare docker tag from ref
+        id: ref_tag
+        run: |
+          tag="${GITHUB_REF_NAME,,}"
+          tag="${tag//\//-}"
+          echo "value=${tag}" >> "$GITHUB_OUTPUT"
 
       # Create docker image version
       - name: Build and push version
-        if: ${{ inputs.version == 'true' && env.BRANCH != 'develop'}}
+        if: ${{ inputs.version && github.ref_name != 'develop' }}
         id: docker_build_version
         uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
         with:
@@ -63,13 +66,16 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGE }}:${{ steps.project.outputs.version }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Version image digest
+        if: ${{ inputs.version && github.ref_name != 'develop' }}
+        run: echo ${{ steps.docker_build_version.outputs.digest }}
 
       # Create docker image latest
       - name: Build and push latest
-        if: ${{ inputs.version != 'true' && env.BRANCH == 'develop'}}
-        # if: ${{ env.BRANCH }} == 'develop'
+        if: ${{ inputs.version == false && github.ref_name == 'develop' }}
         id: docker_build_latest
         uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
         with:
@@ -79,14 +85,16 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGE }}:latest
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
-      - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Latest image digest
+        if: ${{ inputs.version == false && github.ref_name == 'develop' }}
+        run: echo ${{ steps.docker_build_latest.outputs.digest }}
 
       # Create docker image branchName
       - name: Build and push branch
-        if: ${{ inputs.version != 'true' && env.BRANCH != 'develop'}}
+        if: ${{ inputs.version == false && github.ref_name != 'develop' }}
         id: docker_build_branch
         uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
         with:
@@ -95,8 +103,10 @@ jobs:
           file: ./docker/Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGE }}:${{ env.BRANCH }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
-      - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+          tags: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGE }}:${{ steps.ref_tag.outputs.value }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Branch image digest
+        if: ${{ inputs.version == false && github.ref_name != 'develop' }}
+        run: echo ${{ steps.docker_build_branch.outputs.digest }}

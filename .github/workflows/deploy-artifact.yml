@@ -4,10 +4,14 @@ on:
   workflow_dispatch:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   deploy-artifact:
     name: Deploy-artifact
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: write
       packages: write
@@ -22,6 +26,6 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Publish artifact on GitHub Packages
-        run: mvn -B -e -X clean deploy -DskipTests
+        run: mvn -B -e clean deploy -DskipTests
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

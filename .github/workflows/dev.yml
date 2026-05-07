@@ -5,8 +5,12 @@ on:
     branches:
       - develop
 
+concurrency:
+  group: dev-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
-  actions: write
+  contents: read
 
 jobs:
   buildAndSonar:
@@ -18,7 +22,6 @@ jobs:
     name: Deploy-artifact
     needs: [ buildAndSonar ]
     permissions:
-      actions: write
       contents: write
       packages: write
     uses: ./.github/workflows/deploy-artifact.yml
@@ -29,5 +32,5 @@ jobs:
     needs: [ buildAndSonar ]
     uses: ./.github/workflows/build-docker.yml
     with:
-      version: 'false'
+      version: false
     secrets: inherit

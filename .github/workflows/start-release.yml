@@ -12,6 +12,10 @@ jobs:
   release:
     name: Release-app
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -23,21 +27,15 @@ jobs:
           java-version: 25
           distribution: 'temurin'
           cache: 'maven'
-      - name: Cache Maven packages
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-      - name: View settings.xml
-        run: cat /home/runner/.m2/settings.xml
       - name: Configure Git user
         run: |
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
       - name: Extract Maven project version
-        run: echo ::set-output name=version::$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec | cut -d "-" -f 1)
         id: project
+        run: |
+          version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec | cut -d "-" -f 1)
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
       - name: Show version
         run: |
           echo "Release Version : ${{ steps.project.outputs.version }}"
