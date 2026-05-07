@@ -51,7 +51,11 @@ jobs:
         id: ref_tag
         run: |
           tag="${GITHUB_REF_NAME,,}"
-          tag="${tag//\//-}"
+          tag="$(printf '%s' "$tag" | sed -E 's/[^a-z0-9_.-]+/-/g; s/^[.-]+//')"
+          tag="${tag:0:128}"
+          if [ -z "$tag" ]; then
+            tag="ref"
+          fi
           echo "value=${tag}" >> "$GITHUB_OUTPUT"
 
       # Create docker image version
