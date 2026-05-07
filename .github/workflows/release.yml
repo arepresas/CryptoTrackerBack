@@ -5,8 +5,12 @@ on:
     tags:
       - 'crypto-tracker-*.*.*'
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
-  actions: write
+  contents: read
 
 jobs:
   buildAndSonar:
@@ -19,5 +23,5 @@ jobs:
     needs: [ buildAndSonar ]
     uses: ./.github/workflows/build-docker.yml
     with:
-      version: 'true'
+      version: true
     secrets: inherit

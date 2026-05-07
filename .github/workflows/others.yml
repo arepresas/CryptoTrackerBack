@@ -6,8 +6,12 @@ on:
       - develop
       - master
 
+concurrency:
+  group: others-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
-  actions: write
+  contents: read
 jobs:
   buildAndSonar:
     name: Build-app
@@ -19,5 +23,5 @@ jobs:
     needs: [ buildAndSonar ]
     uses: ./.github/workflows/build-docker.yml
     with:
-      version: 'false'
+      version: false
     secrets: inherit

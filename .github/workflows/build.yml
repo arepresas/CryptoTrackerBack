@@ -4,10 +4,14 @@ on:
   workflow_dispatch:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build-app
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -19,12 +23,6 @@ jobs:
           java-version: 25
           distribution: 'temurin'
           cache: 'maven'
-      - name: Cache Maven packages
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
       - name: Maven Package
         run: mvn -B clean package
 
@@ -32,6 +30,9 @@ jobs:
     name: Sonar-cloud
     runs-on: ubuntu-latest
     needs: [ build ]
+    timeout-minutes: 20
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -42,14 +43,8 @@ jobs:
           java-version: 25
           distribution: 'temurin'
           cache: 'maven'
-      - name: Cache Maven packages
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
       - name: SonarCloud Scan
+        if: ${{ env.SONAR_TOKEN != '' }}
         run: mvn -B clean verify -Psonar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
