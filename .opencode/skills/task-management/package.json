@@ -1,0 +1,13 @@
+{
+  "name": "task-management-skill",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Task management skill with pinned dependencies",
+  "scripts": {
+    "router": "./router.sh"
+  },
+  "dependencies": {
+    "ts-node": "10.9.2",
+    "typescript": "5.3.3"
+  }
+}
