@@ -1,0 +1,34 @@
+{
+  "branches": [
+    "master"
+  ],
+  "tagFormat": "crypto-tracker-${version}",
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/changelog",
+      {
+        "changelogFile": "CHANGELOG.md"
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "mvn -B versions:set -DnewVersion=${nextRelease.version} -DgenerateBackupPoms=false",
+        "publishCmd": "mvn -B -DskipTests deploy"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "CHANGELOG.md",
+          "pom.xml"
+        ],
+        "message": "chore(release): crypto-tracker-${nextRelease.version} [skip ci]\\n\\n${nextRelease.notes}"
+      }
+    ],
+    "@semantic-release/github"
+  ]
+}

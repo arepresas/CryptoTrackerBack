@@ -2,45 +2,43 @@ name: StartRelease workflow
 
 on:
   workflow_dispatch:
-    inputs:
-      developmentVersion:
-        description: "Default version to use for new local working copy."
-        required: true
-        default: "X.Y.Z-SNAPSHOT"
+
+concurrency:
+  group: start-release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   release:
-    name: Release-app
+    name: Semantic-release
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       contents: write
+      issues: write
+      pull-requests: write
       packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642a3ce6ea30ac0485487b9 # v4.4.0
+        with:
+          node-version: lts/*
+
       - name: Set up JDK
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           java-version: 25
           distribution: 'temurin'
           cache: 'maven'
-      - name: Configure Git user
-        run: |
-          git config user.email "actions@github.com"
-          git config user.name "GitHub Actions"
-      - name: Extract Maven project version
-        id: project
-        run: |
-          version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec | cut -d "-" -f 1)
-          echo "version=${version}" >> "$GITHUB_OUTPUT"
-      - name: Show version
-        run: |
-          echo "Release Version : ${{ steps.project.outputs.version }}"
-          echo "Development Version : ${{ github.event.inputs.developmentVersion }}"
-      - name: Publish JAR
-        run: mvn release:prepare release:perform -B -DreleaseVersion=${{ steps.project.outputs.version }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
+
+      - name: Install semantic-release dependencies
+        run: npm install --no-save semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/changelog @semantic-release/exec @semantic-release/git @semantic-release/github
+
+      - name: Run semantic-release
+        run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
