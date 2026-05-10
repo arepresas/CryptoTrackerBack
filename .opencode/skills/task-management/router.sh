@@ -58,12 +58,13 @@ if [ ! -f "$CLI_SCRIPT" ]; then
     exit 1
 fi
 
-# Find project root
+# Find project root (actual repo root, not this skill's directory)
 find_project_root() {
     local dir
     dir="$(pwd)"
     while [ "$dir" != "/" ]; do
-        if [ -d "$dir/.git" ] || [ -f "$dir/package.json" ]; then
+        # Look for .git or Maven wrapper (pom.xml alone isn't unique enough)
+        if [ -d "$dir/.git" ] || [ -f "$dir/mvnw" ]; then
             echo "$dir"
             return 0
         fi
@@ -88,5 +89,5 @@ fi
 PROJECT_ROOT="$(find_project_root)"
 
 # Route commands
-# Run the task CLI with all arguments
-cd "$PROJECT_ROOT" && npx ts-node "$CLI_SCRIPT" "$@"
+# Run the task CLI with all arguments, using local pinned ts-node
+cd "$PROJECT_ROOT" && npx --prefix "$SCRIPT_DIR" ts-node "$CLI_SCRIPT" "$@"
