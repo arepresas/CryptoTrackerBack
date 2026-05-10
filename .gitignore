@@ -46,4 +46,5 @@ hs_err_pid*
 # Local secrets / env overrides
 .env
 .env.local
+.devcontainer/.env
 .tmp

@@ -11,6 +11,9 @@ logging:
 
 spring:
   application.name: "crypto-tracker"
+  profiles:
+    group:
+      local-devcont: local
   config:
     import: vault://
   cloud:

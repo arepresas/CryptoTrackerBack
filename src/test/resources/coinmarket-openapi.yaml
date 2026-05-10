@@ -1,0 +1,183 @@
+openapi: 3.0.3
+info:
+  title: CoinMarketAPI
+  version: 1.0.0
+paths:
+  /v1/cryptocurrency/listings/latest:
+    get:
+      x-microcks-operation:
+        dispatcher: URI_PARAMS
+        dispatcherRules: start && limit && convert
+      parameters:
+        - in: query
+          name: start
+          schema:
+            type: integer
+          examples:
+            default_case:
+              value: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          examples:
+            default_case:
+              value: 200
+        - in: query
+          name: convert
+          schema:
+            type: string
+          examples:
+            default_case:
+              value: USD
+      responses:
+        "200":
+          description: Latest listings
+          content:
+            application/json:
+              examples:
+                default_case:
+                  value:
+                    status:
+                      error_code: 0
+                      error_message: null
+                      elapsed: 10
+                      credit_count: 1
+                    data:
+                      - id: 2
+                        name: Ethereum
+                        symbol: ETH
+                        slug: ethereum
+                        cmc_rank: 2
+                        num_market_pairs: 900
+                        circulating_supply: 120000000.0
+                        total_supply: 120000000.0
+                        max_supply: null
+                        last_updated: "2026-05-10T00:00:00.000Z"
+                        date_added: "2015-08-07T00:00:00.000Z"
+                        quote:
+                          USD:
+                            price: 3200.0
+                            volume_24h: 600000.0
+                            volume_change_24h: 1.2
+                            percent_change_1h: 0.1
+                            percent_change_24h: 0.8
+                            percent_change_7d: 2.1
+                            percent_change_30d: 5.0
+                            percent_change_60d: 10.0
+                            percent_change_90d: 15.0
+                            market_cap: 800000000.0
+                            market_cap_dominance: 18.0
+                            fully_diluted_market_cap: 820000000.0
+                            last_updated: "2026-05-10T00:00:00.000Z"
+
+  /v2/cryptocurrency/info:
+    get:
+      x-microcks-operation:
+        dispatcher: URI_PARAMS
+        dispatcherRules: id
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: string
+          examples:
+            default_case:
+              value: "2"
+      responses:
+        "200":
+          description: Crypto info by id
+          content:
+            application/json:
+              examples:
+                default_case:
+                  value:
+                    status:
+                      error_code: 0
+                      error_message: null
+                      elapsed: 10
+                      credit_count: 1
+                    data:
+                      "2":
+                        id: 2
+                        name: Ethereum
+                        symbol: ETH
+                        category: coin
+                        description: Ethereum description for integration tests
+                        slug: ethereum
+                        logo: https://example.com/eth.png
+                        subreddit: ethereum
+                        tags:
+                          - smart-contracts
+                        tag-names:
+                          - Smart Contracts
+                        tag-groups:
+                          - CATEGORY
+                        date_added: "2015-08-07T00:00:00.000Z"
+                        twitter_username: ethereum
+                        is_hidden: 0
+                        urls:
+                          website:
+                            - https://ethereum.org
+
+  /v2/cryptocurrency/quotes/latest:
+    get:
+      x-microcks-operation:
+        dispatcher: URI_PARAMS
+        dispatcherRules: id && convert
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: string
+          examples:
+            default_case:
+              value: "3"
+        - in: query
+          name: convert
+          schema:
+            type: string
+          examples:
+            default_case:
+              value: USD
+      responses:
+        "200":
+          description: Quotes latest by id
+          content:
+            application/json:
+              examples:
+                default_case:
+                  value:
+                    status:
+                      error_code: 0
+                      error_message: null
+                      elapsed: 10
+                      credit_count: 1
+                    data:
+                      "3":
+                        id: 3
+                        name: Dogecoin
+                        symbol: DOGE
+                        slug: dogecoin
+                        cmc_rank: 10
+                        num_market_pairs: 300
+                        circulating_supply: 140000000000.0
+                        total_supply: 140000000000.0
+                        max_supply: null
+                        last_updated: "2026-05-10T00:00:00.000Z"
+                        date_added: "2013-12-15T00:00:00.000Z"
+                        quote:
+                          USD:
+                            price: 0.22
+                            volume_24h: 120000.0
+                            volume_change_24h: 0.5
+                            percent_change_1h: 0.05
+                            percent_change_24h: 0.7
+                            percent_change_7d: 1.1
+                            percent_change_30d: 2.2
+                            percent_change_60d: 4.4
+                            percent_change_90d: 5.5
+                            market_cap: 35000000.0
+                            market_cap_dominance: 1.2
+                            fully_diluted_market_cap: 36000000.0
+                            last_updated: "2026-05-10T00:00:00.000Z"
