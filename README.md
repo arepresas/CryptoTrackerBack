@@ -30,6 +30,41 @@ The project follows a modular monolith approach with a package-by-feature struct
 
 ## Local Setup
 
+## Dev Container (Vault closer to production)
+
+You can also work with a devcontainer environment that runs Vault in non-`dev` mode (init/unseal + policy + app token), to better mirror production behavior.
+
+### 1) Variables for Vault bootstrap
+
+Create `.devcontainer/.env` (not versioned) with:
+
+```bash
+CRYPTO_API_URL=https://pro-api.coinmarketcap.com
+CRYPTO_API_KEY=YOUR_COINMARKET_API_KEY
+```
+
+### 2) Open the project in Dev Container
+
+In VS Code:
+
+- `Dev Containers: Reopen in Container`
+
+When starting, `app`, `postgres`, `vault`, and `vault-init` are launched.
+`vault-init` is responsible for:
+
+- initializing and unsealing Vault,
+- creating the `crypto-tracker-app` policy,
+- loading secrets into `secret/crypto-tracker`,
+- generating an app token and syncing it to `~/.vault-token` inside the `app` container.
+
+### 3) Run the application inside the container
+
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local-devcont,debug
+```
+
+The app will use Vault at `http://vault:8200`, the local app token, and the Docker-internal datasource (`postgres:5432`) through the `local-devcont` profile.
+
 ### 1) Create local environment file
 
 Create a `.env` file at repository root (do not commit it):

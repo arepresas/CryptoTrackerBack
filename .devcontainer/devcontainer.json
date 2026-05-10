@@ -1,0 +1,30 @@
+{
+  "name": "CryptoTrackerBack DevContainer",
+  "dockerComposeFile": [
+    "docker-compose.devcontainer.yml"
+  ],
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+  "remoteUser": "vscode",
+  "runServices": [
+    "app",
+    "postgres",
+    "vault",
+    "vault-init"
+  ],
+  "postStartCommand": "bash .devcontainer/scripts/app-post-start.sh",
+  "containerEnv": {
+    "VAULT_URI": "http://vault:8200",
+    "VAULT_ADDR": "http://vault:8200"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "redhat.vscode-yaml",
+        "hashicorp.hcl"
+      ]
+    }
+  }
+}

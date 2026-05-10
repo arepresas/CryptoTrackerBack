@@ -1,0 +1,27 @@
+spring:
+  config:
+    import: optional:vault://
+  cloud:
+    vault:
+      enabled: true
+      uri: ${VAULT_URI:http://127.0.0.1:8200}
+      token: ${VAULT_TOKEN:test-token}
+  task:
+    scheduling:
+      enabled: false
+  datasource:
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog-master.yml
+
+coinMarket:
+  api:
+    key: ${crypto-api.key:test-key}
+  saved-cryptos:
+    start: 1
+    end: 200
